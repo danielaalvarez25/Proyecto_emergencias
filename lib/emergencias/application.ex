@@ -4,18 +4,26 @@ defmodule Emergencias.Application do
 
   Los hijos se agregan a medida que existan los procesos:
 
-    * Persona A: GenServer de recursos, GenServer de albergues y un
-      `DynamicSupervisor` para procesos por necesidad.
+    * Persona A: `Emergencias.Recursos` y `Emergencias.Necesidades` (listos),
+      GenServer de albergues y un `DynamicSupervisor`.
     * Persona B: GenServer de usuarios, zonas, personas y mascotas.
+
+  `Recursos` va antes que `Necesidades` porque esta le pide inventario.
   """
 
   use Application
 
   @impl true
   def start(_type, _args) do
-    children = []
-
     opts = [strategy: :one_for_one, name: Emergencias.Supervisor]
-    Supervisor.start_link(children, opts)
+    Supervisor.start_link(hijos(), opts)
+  end
+
+  defp hijos do
+    if Application.get_env(:emergencias, :iniciar_procesos, true) do
+      [Emergencias.Recursos, Emergencias.Necesidades]
+    else
+      []
+    end
   end
 end
