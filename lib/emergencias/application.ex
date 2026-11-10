@@ -4,11 +4,12 @@ defmodule Emergencias.Application do
 
   Los hijos se agregan a medida que existan los procesos:
 
-    * Persona A: `Emergencias.Recursos` y `Emergencias.Necesidades` (listos),
-      GenServer de albergues y un `DynamicSupervisor`.
+    * Persona A: `Emergencias.Recursos`, `Emergencias.Necesidades` y
+      `Emergencias.Albergues` (listos) y un `DynamicSupervisor` (pendiente).
     * Persona B: GenServer de usuarios, zonas, personas y mascotas.
 
-  `Recursos` va antes que `Necesidades` porque esta le pide inventario.
+  El orden importa: `Recursos` va primero porque `Necesidades` le pide
+  inventario, y `Albergues` va al final porque consulta a ambos.
   """
 
   use Application
@@ -21,7 +22,7 @@ defmodule Emergencias.Application do
 
   defp hijos do
     if Application.get_env(:emergencias, :iniciar_procesos, true) do
-      [Emergencias.Recursos, Emergencias.Necesidades]
+      [Emergencias.Recursos, Emergencias.Necesidades, Emergencias.Albergues]
     else
       []
     end
