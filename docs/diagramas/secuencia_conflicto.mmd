@@ -1,0 +1,28 @@
+sequenceDiagram
+    autonumber
+    participant U as Llamador
+    participant D as Despacho (DynamicSupervisor)
+    participant T1 as Task N001
+    participant T2 as Task N002
+    participant N as Necesidades (GenServer)
+    participant R as Recursos (GenServer)
+
+    U->>D: asignar_varias([N001: 30 L, N002: 25 L])
+    D-->>T1: start_child
+    D-->>T2: start_child
+    par solicitudes simultáneas
+        T1->>N: asignar(N001, agua, 30)
+    and
+        T2->>N: asignar(N002, agua, 25)
+    end
+    Note over N: Atiende de una en una.<br/>Gana la que llegue primero.
+    N->>R: tomar(agua, 30, N001)
+    Note over R: Inventario: 50 L
+    R-->>N: {:ok, [{R001, 30}]}  (quedan 20 L)
+    N-->>T1: {:ok, necesidad asignada}
+    N->>R: tomar(agua, 25, N002)
+    R-->>N: {:error, :stock_insuficiente}
+    N-->>T2: {:error, :stock_insuficiente}
+    T1-->>U: {:despacho, ref, {:ok, ...}}
+    T2-->>U: {:despacho, ref, {:error, :stock_insuficiente}}
+    Note over U: Solo se confirma una asignación.<br/>Nunca se asignan 55 L con 50 disponibles.

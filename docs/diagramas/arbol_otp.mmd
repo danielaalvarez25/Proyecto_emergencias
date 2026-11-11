@@ -1,0 +1,16 @@
+flowchart TD
+    APP["Emergencias.Application"] --> SUP["Emergencias.Supervisor<br/>Supervisor, one_for_one"]
+    SUP --> REC["Recursos<br/>GenServer"]
+    SUP --> NEC["Necesidades<br/>GenServer"]
+    SUP --> ALB["Albergues<br/>GenServer"]
+    SUP --> DES["Despacho<br/>DynamicSupervisor"]
+    DES --> T1["Task por asignación<br/>temporary"]
+    DES --> T2["Task por asignación<br/>temporary"]
+    T1 -. "Necesidades.asignar/3" .-> NEC
+    T2 -. "Necesidades.asignar/3" .-> NEC
+    NEC -. "Recursos.tomar/4" .-> REC
+    ALB -. "consulta" .-> REC
+    ALB -. "consulta" .-> NEC
+    REC --- AR[("recursos.txt<br/>movimientos_recursos.txt")]
+    NEC --- AN[("necesidades.txt")]
+    ALB --- AA[("albergues.txt")]
